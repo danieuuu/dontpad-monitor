@@ -1,6 +1,7 @@
 import requests
 import time
 from telegram import Bot
+print("A biblioteca foi instalada corretamente!")
 
 # Configurações
 DONT_PAD_URL = "https://dontpad.com/piguicinha.text"
