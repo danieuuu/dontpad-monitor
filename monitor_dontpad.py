@@ -8,7 +8,7 @@ from telegram import Bot
 
 # 📝 Lista de links a serem monitorados
 DONT_PAD_URLS = [
-    "https://dontpad.com/piguicinha",
+    "https://dontpad.com/piguica",
     "https://dontpad.com/2defevereiro",
     "https://dontpad.com/splitfiction"
 ]
