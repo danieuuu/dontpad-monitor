@@ -11,8 +11,8 @@ from telegram import Bot
 print(f"BOT_TOKEN: {repr(os.getenv('BOT_TOKEN'))}")  # Verifica se a variável está sendo lida corretamente
 
 # 🔹 Configuração do bot do Telegram (usando variáveis de ambiente)
-BOT_TOKEN = os.getenv("8021907392:AAHf16JeFTa090Op9RLsUoqKPgiscDyYwpM")
-CHAT_ID = os.getenv("7173683946")
+BOT_TOKEN = ("8021907392:AAHf16JeFTa090Op9RLsUoqKPgiscDyYwpM")
+CHAT_ID = ("7173683946")
 
 bot = Bot(token=BOT_TOKEN)
 
