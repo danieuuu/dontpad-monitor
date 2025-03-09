@@ -7,6 +7,9 @@ import threading
 TELEGRAM_TOKEN = os.getenv("8021907392:AAHf16JeFTa090Op9RLsUoqKPgiscDyYwpM")
 CHAT_ID = os.getenv("7173683946")
 
+print(f"TELEGRAM_TOKEN: {TELEGRAM_TOKEN}")
+print(f"CHAT_ID: {CHAT_ID}")
+
 def enviar_notificacao(mensagem):
     try:
         url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -22,7 +25,7 @@ def enviar_notificacao(mensagem):
         print(f"❌ Erro ao enviar notificação: {e}")
 
 def monitor_dontpad(link, intervalo=10):
-    url = f"http://dontpad.com/{link}.body"
+    url = f"http://dontpad.com/{link}"
     conteudo_anterior = ""
 
     print(f"🔎 Monitorando: {url}")
