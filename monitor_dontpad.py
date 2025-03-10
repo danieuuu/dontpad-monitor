@@ -13,8 +13,8 @@ from telegram import Bot
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configurações do Telegram
-BOT_TOKEN = os.getenv("8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q")  # Certifique-se de definir essa variável no Railway
-CHAT_ID = os.getenv("7173683946")
+BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"  # Certifique-se de definir essa variável no Railway
+CHAT_ID = "7173683946"
 bot = Bot(token=BOT_TOKEN)
 
 # Lista de páginas para monitorar
