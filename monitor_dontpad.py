@@ -14,6 +14,7 @@ from telegram import Bot
 # Configuração
 DONT_PAD_URLS = [
     "https://dontpad.com/piguica",
+
 ]
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
@@ -21,6 +22,9 @@ CHECK_INTERVAL = 10 # Tempo entre verificações (30 minutos)
 bot = Bot(token=BOT_TOKEN)
 last_contents = {url: "" for url in DONT_PAD_URLS}
 last_update = datetime.now()
+
+# Criar um loop assíncrono global
+loop = asyncio.get_event_loop()
 
 # Configuração do ChromeDriver
 def create_driver():
@@ -73,13 +77,13 @@ while True:
 
         if content is not None:
             if content != last_contents[url]:
-                asyncio.run(send_telegram_notification(url, content))
+                loop.run_until_complete(send_telegram_notification(url, content))
                 last_contents[url] = content  
                 last_update = datetime.now()  
 
     # Se passou 1 hora sem mudanças, enviar um aviso
     if datetime.now() - last_update > timedelta(hours=1):
-        asyncio.run(bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora."))
+        loop.run_until_complete(bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora."))
         last_update = datetime.now()
 
     time.sleep(CHECK_INTERVAL)  
