@@ -17,11 +17,13 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # 📝 Lista de links a serem monitorados
 DONT_PAD_URLS = [
     "https://dontpad.com/piguica",
+    "https://dontpad.com/2defevereiro",
+    "https://dontpad.com/splitfiction"
 ]
 
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
-CHECK_INTERVAL = 3600  # Tempo entre verificações (30 min)
+CHECK_INTERVAL = 1800  # Tempo entre verificações (30 min)
 NO_UPDATE_WARNING_TIME = 3600  # Tempo sem atualizações antes de mandar alerta (1 hora)
 
 bot = Bot(token=BOT_TOKEN)
@@ -68,13 +70,19 @@ def get_dontpad_content_selenium(url):
         return None
 
 
-async def send_telegram_notification(url):
-    """Envia uma mensagem para o Telegram informando que houve atualização."""
+async def send_telegram_notification(url, content):
+    """Envia uma mensagem para o Telegram informando que houve atualização e mostra o conteúdo novo."""
     global last_update
-    message = f"📢 O conteúdo do Dontpad foi atualizado!\n🔗 {url}"
+
+    # Se o conteúdo for muito grande, cortar para evitar limite do Telegram (4096 caracteres)
+    max_length = 4000  
+    if len(content) > max_length:
+        content = content[:max_length] + "...\n🔗 Veja mais no link: " + url
+
+    message = f"📢 O conteúdo do Dontpad foi atualizado!\n🔗 {url}\n\n📝 **Novo conteúdo:**\n```\n{content}\n```"
     
     try:
-        await bot.send_message(chat_id=CHAT_ID, text=message)
+        await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown")
         last_update = datetime.now()  # Atualiza o tempo da última mudança
     except Exception as e:
         logging.error(f"⚠️ Erro ao enviar mensagem no Telegram: {e}")
@@ -105,7 +113,7 @@ while True:
             logging.info(f"🔍 [{url}] Verificado!")
 
             if content != last_contents[url]:
-                loop.run_until_complete(send_telegram_notification(url))
+                loop.run_until_complete(send_telegram_notification(url, content))
                 last_contents[url] = content  # Atualiza o último conteúdo
 
     loop.run_until_complete(send_no_update_warning())  # Verifica se precisa mandar aviso
