@@ -21,7 +21,7 @@ DONT_PAD_URLS = [
 
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
-CHECK_INTERVAL = 1800  # Tempo entre verificações (30 min)
+CHECK_INTERVAL = 3600  # Tempo entre verificações (30 min)
 NO_UPDATE_WARNING_TIME = 3600  # Tempo sem atualizações antes de mandar alerta (1 hora)
 
 bot = Bot(token=BOT_TOKEN)
