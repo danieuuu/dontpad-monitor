@@ -17,7 +17,7 @@ DONT_PAD_URLS = [
 ]
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
-CHECK_INTERVAL = 3600  # Tempo entre verificações (30 minutos)
+CHECK_INTERVAL = 10 # Tempo entre verificações (30 minutos)
 bot = Bot(token=BOT_TOKEN)
 last_contents = {url: "" for url in DONT_PAD_URLS}
 last_update = datetime.now()
@@ -79,7 +79,7 @@ while True:
 
     # Se passou 1 hora sem mudanças, enviar um aviso
     if datetime.now() - last_update > timedelta(hours=1):
-        bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora.")
+        asyncio.run(bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora."))
         last_update = datetime.now()
 
     time.sleep(CHECK_INTERVAL)  
