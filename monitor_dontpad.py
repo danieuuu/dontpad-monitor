@@ -11,111 +11,75 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from telegram import Bot
 
-# Configurar logging para debug
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
-# 📝 Lista de links a serem monitorados
+# Configuração
 DONT_PAD_URLS = [
     "https://dontpad.com/piguica",
-    "https://dontpad.com/2defevereiro",
-    "https://dontpad.com/splitfiction"
 ]
-
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
-CHECK_INTERVAL = 1800  # Tempo entre verificações (30 min)
-NO_UPDATE_WARNING_TIME = 3600  # Tempo sem atualizações antes de mandar alerta (1 hora)
-
+CHECK_INTERVAL = 3600  # Tempo entre verificações (30 minutos)
 bot = Bot(token=BOT_TOKEN)
-
-# Dicionário para armazenar o último conteúdo de cada link
 last_contents = {url: "" for url in DONT_PAD_URLS}
-last_update = datetime.now()  # Última atualização válida
+last_update = datetime.now()
 
-
-def restart_bot():
-    """Reinicia o bot caso ocorra erro crítico."""
-    logging.info("🔄 Reiniciando o bot devido a erro...")
-    os.execv(sys.executable, ['python'] + sys.argv)
-
-
-def get_dontpad_content_selenium(url):
-    """Acessa o Dontpad e retorna o texto digitado lá."""
-    global last_update
+# Configuração do ChromeDriver
+def create_driver():
+    """Cria e retorna uma nova instância do ChromeDriver"""
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")  
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
     try:
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")  # Roda sem abrir o navegador
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
-
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url)
-
-        time.sleep(3)  # Espera o JavaScript carregar
-
-        textarea = driver.find_element(By.ID, "text")
-        text_content = textarea.get_attribute("value").strip()
-
-        driver.quit()
-        return text_content
-
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+        return driver
     except WebDriverException as e:
-        logging.error(f"⚠️ Erro ao acessar o Dontpad ({url}): {e}")
-        
-        # Se for erro do ChromeDriver, reiniciar o bot
-        if "chromedriver unexpectedly exited" in str(e):
-            restart_bot()
-        
+        logging.error(f"Erro ao iniciar o ChromeDriver: {e}")
         return None
 
+driver = create_driver()  # Inicializa o driver
+
+def get_dontpad_content(url):
+    """Obtém o conteúdo do Dontpad usando Selenium"""
+    global driver
+    try:
+        if driver is None:
+            driver = create_driver()  # Tenta recriar o driver
+
+        if driver is not None:
+            driver.get(url)
+            time.sleep(3)  
+            textarea = driver.find_element(By.ID, "text")
+            return textarea.get_attribute("value").strip()
+    except WebDriverException as e:
+        logging.error(f"Erro ao acessar {url}: {e}")
+        driver.quit()  # Fecha o driver quebrado
+        driver = None  # Marca como None para recriar depois
+        return None
 
 async def send_telegram_notification(url, content):
-    """Envia uma mensagem para o Telegram informando que houve atualização e mostra o conteúdo novo."""
-    global last_update
-
-    # Se o conteúdo for muito grande, cortar para evitar limite do Telegram (4096 caracteres)
-    max_length = 4000  
-    if len(content) > max_length:
-        content = content[:max_length] + "...\n🔗 Veja mais no link: " + url
-
-    message = f"📢 O conteúdo do Dontpad foi atualizado!\n🔗 {url}\n\n📝 **Novo conteúdo:**\n```\n{content}\n```"
-    
+    """Envia mensagem para o Telegram com a atualização"""
+    message = f"📢 O conteúdo do Dontpad foi atualizado!\n🔗 {url}\n📝 Conteúdo:\n\n{content}"
     try:
-        await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode="Markdown")
-        last_update = datetime.now()  # Atualiza o tempo da última mudança
+        await bot.send_message(chat_id=CHAT_ID, text=message)
     except Exception as e:
-        logging.error(f"⚠️ Erro ao enviar mensagem no Telegram: {e}")
-
-
-async def send_no_update_warning():
-    """Envia um aviso se não houver atualização por 1 hora."""
-    global last_update
-    if datetime.now() - last_update > timedelta(seconds=NO_UPDATE_WARNING_TIME):
-        try:
-            await bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora.")
-            logging.warning("❌ Nenhuma atualização no Dontpad há 1 hora.")
-            last_update = datetime.now()  # Atualiza o tempo para não enviar várias vezes seguidas
-        except Exception as e:
-            logging.error(f"⚠️ Erro ao enviar aviso no Telegram: {e}")
-
-
-# Criar um loop assíncrono para rodar sem fechar
-loop = asyncio.get_event_loop()
-
-logging.info("🚀 Monitorando múltiplos links do Dontpad...")
+        logging.error(f"Erro ao enviar mensagem no Telegram: {e}")
 
 while True:
     for url in DONT_PAD_URLS:
-        content = get_dontpad_content_selenium(url)
+        content = get_dontpad_content(url)
 
         if content is not None:
-            logging.info(f"🔍 [{url}] Verificado!")
-
             if content != last_contents[url]:
-                loop.run_until_complete(send_telegram_notification(url, content))
-                last_contents[url] = content  # Atualiza o último conteúdo
+                asyncio.run(send_telegram_notification(url, content))
+                last_contents[url] = content  
+                last_update = datetime.now()  
 
-    loop.run_until_complete(send_no_update_warning())  # Verifica se precisa mandar aviso
+    # Se passou 1 hora sem mudanças, enviar um aviso
+    if datetime.now() - last_update > timedelta(hours=1):
+        bot.send_message(chat_id=CHAT_ID, text="❌ Nenhuma atualização no Dontpad há 1 hora.")
+        last_update = datetime.now()
 
-    time.sleep(CHECK_INTERVAL)  # Aguarda antes da próxima verificação
+    time.sleep(CHECK_INTERVAL)  
