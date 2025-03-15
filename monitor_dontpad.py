@@ -17,8 +17,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 # 📝 Lista de links a serem monitorados
 DONT_PAD_URLS = [
     "https://dontpad.com/piguica",
-    "https://dontpad.com/2defevereiro",
-    "https://dontpad.com/splitfiction"
 ]
 
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
