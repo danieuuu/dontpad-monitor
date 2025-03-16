@@ -18,7 +18,7 @@ DONT_PAD_URLS = [
 ]
 BOT_TOKEN = "8021907392:AAEWaAw2UJ4aT2kWg1LCTJn4AyETK3alH7Q"
 CHAT_ID = "7173683946"
-CHECK_INTERVAL = 10 # Tempo entre verificações (30 minutos)
+CHECK_INTERVAL = 3600 # Tempo entre verificações (30 minutos)
 bot = Bot(token=BOT_TOKEN)
 last_contents = {url: "" for url in DONT_PAD_URLS}
 last_update = datetime.now()
